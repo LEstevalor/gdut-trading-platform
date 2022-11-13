@@ -139,3 +139,6 @@ cython_debug/
 
 # git默认提交存在
 .idea/
+
+# 日志文件
+logs/*.log
