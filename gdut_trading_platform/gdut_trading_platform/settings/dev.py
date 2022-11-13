@@ -192,3 +192,9 @@ LOGGING = {
         },
     },
 }
+
+# DRF配置项
+REST_FRAMEWORK = {
+    # 异常处理
+    'EXCEPTION_HANDLER': 'gdut_trading_platform.utils.exceptions.exception_handler',
+}
