@@ -33,8 +33,8 @@ SECRET_KEY = 'django-insecure-(*r*nj-=7s2w3_%+e2@-b%ah36z5h*i&*fheuk!uvb6ra0-8c=
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = []
+# 允许哪些域名访问Django
+ALLOWED_HOSTS = ['127.0.0.1', 'Localhost', 'www.gdut-trading-platform.site', 'api.gdut-trading-platform.site']
 
 
 # Application definition
@@ -48,12 +48,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',       # DRF
+    'corsheaders',          # 解决跨域CORS
 
     'users.apps.UsersConfig',    # 用户模块注册
 
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',       # 最外层的中间件
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -145,7 +147,7 @@ CACHES = {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/0",
         "OPTIONS": {
-        	"CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
     "session": {
@@ -154,7 +156,14 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
-    }
+    },
+    "verify_codes": {   # 缓存验证码
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/2",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
 }
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "session"
@@ -165,15 +174,15 @@ LOGGING = {
     'disable_existing_loggers': False,  # 是否禁用已经存在的日志器
     'formatters': {  # 日志信息显示的格式
         'verbose': {
-        	'format': '%(levelname)s %(asctime)s %(module)s %(lineno)d %(message)s'
+            'format': '%(levelname)s %(asctime)s %(module)s %(lineno)d %(message)s'
         },
         'simple': {
-        	'format': '%(levelname)s %(module)s %(lineno)d %(message)s'
+            'format': '%(levelname)s %(module)s %(lineno)d %(message)s'
         },
     },
     'filters': {  # 对日志进行过滤
         'require_debug_true': {  # django在debug模式下才输出日志
-        	'()': 'django.utils.log.RequireDebugTrue',
+            '()': 'django.utils.log.RequireDebugTrue',
         },
     },
     'handlers': {  # 日志处理方法
@@ -212,3 +221,13 @@ REST_FRAMEWORK = {
 # AUTH_USER_MODEL = 'gdut_trading_platform.apps.users.models.User'
 AUTH_USER_MODEL = 'users.User'     # 导包路径里需要到apps才能识别出来
 # （这里跳过models，底层会直接走到users.models.User，因为django已经约束死了models文件写模型）
+
+# CORS追加白名单（显然针对的是前端域名）
+CORS_ORIGIN_WHITELIST = (
+    'http://127.0.0.1:8080',
+    'http://localhost:8080',
+    'http://www.gdut-trading-platform.site:8080',
+    'http://api.gdut-trading-platform.site:8000',
+)
+# 允许携带cookie
+CORS_ALLOW_CREDENTIALS = True

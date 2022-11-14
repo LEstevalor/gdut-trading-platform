@@ -1,0 +1,1 @@
+var host = 'http://api.gdut-trading-platform.site:8000'
