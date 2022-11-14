@@ -12,12 +12,18 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import os
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 # print(BASE_DIR)
 # D:\python_environment\python.exercise\DRF_project\gdut-trading-platform\gdut_trading_platform\gdut_trading_platform
+
+# ① 为便于INSTALLED_APPS路径载入；②修改Django认证模型类需“应用名.模型名”  追加搜包路径
+# print(sys.path)
+sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
+# sys.path.insert(0, BASE_DIR + '/apps')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -42,6 +48,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',       # DRF
+
+    'users.apps.UsersConfig',    # 用户模块注册
 
 ]
 
@@ -198,3 +206,9 @@ REST_FRAMEWORK = {
     # 异常处理
     'EXCEPTION_HANDLER': 'gdut_trading_platform.utils.exceptions.exception_handler',
 }
+
+# 修改Django认证系统的用户模型类
+# String model references must be of the form 'app_label.ModelName'.这里的报错说必须要写 应用名.模型名
+# AUTH_USER_MODEL = 'gdut_trading_platform.apps.users.models.User'
+AUTH_USER_MODEL = 'users.User'     # 导包路径里需要到apps才能识别出来
+# （这里跳过models，底层会直接走到users.models.User，因为django已经约束死了models文件写模型）
