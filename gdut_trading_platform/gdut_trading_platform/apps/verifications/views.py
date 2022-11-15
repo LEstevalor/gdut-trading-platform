@@ -1,13 +1,12 @@
 import logging
 from random import randint
-from django.shortcuts import render
 from django_redis import get_redis_connection
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from celery_tasks.sms.tasks import send_sms_code
 from gdut_trading_platform.apps.verifications import constants
-from gdut_trading_platform.libs.yuntongxun.sms import CCP
 
 logger = logging.getLogger('django')
 
@@ -37,7 +36,9 @@ class SMSCodeView(APIView):
         pl.execute()
 
         # 4. 利用云通讯发送短信验证码
-        CCP().send_template_sms(mobile, [sms_code, constants.SMS_CODE_REDIS_EXPIRES // 60], 1)
+        # CCP().send_template_sms(mobile, [sms_code, constants.SMS_CODE_REDIS_EXPIRES // 60], 1)
+        # 触发异步任务
+        send_sms_code.delay(mobile, sms_code)
 
         # 5. 响应
         return Response({'message': 'ok'})
