@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import os
 import sys
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -51,6 +52,8 @@ INSTALLED_APPS = [
     'corsheaders',          # 解决跨域CORS
 
     'users.apps.UsersConfig',    # 用户模块注册
+
+    'rest_framework_simplejwt',  # jwt
 
 ]
 
@@ -214,6 +217,11 @@ LOGGING = {
 REST_FRAMEWORK = {
     # 异常处理
     'EXCEPTION_HANDLER': 'gdut_trading_platform.utils.exceptions.exception_handler',
+
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        # jwt配置
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
 }
 
 # 修改Django认证系统的用户模型类
@@ -231,3 +239,9 @@ CORS_ORIGIN_WHITELIST = (
 )
 # 允许携带cookie
 CORS_ALLOW_CREDENTIALS = True
+
+# Simple JWT
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),  # JWT有效期
+}
+

@@ -13,7 +13,7 @@ logger = logging.getLogger('django')
 
 # Create your views here.
 class SMSCodeView(APIView):
-    """短信验证码"""
+    """短信验证码（通过手机号发送并存储入数据库，有效期为5分钟）"""
 
     def get(self, request, mobile):
         # 1. 创建Redis连接对象
