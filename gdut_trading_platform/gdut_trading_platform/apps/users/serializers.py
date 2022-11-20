@@ -1,8 +1,9 @@
 import re
-
 from django_redis import get_redis_connection
 from rest_framework import serializers
 from rest_framework_jwt.settings import api_settings
+from rest_framework_simplejwt.serializers import TokenObtainSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
 
@@ -85,3 +86,23 @@ class CreateUserSerializer(serializers.ModelSerializer):
         user.token = token
 
         return user
+
+
+class MyTokenObtainPairSerializer(TokenObtainSerializer):
+    @classmethod
+    def get_token(cls, user):
+        return RefreshToken.for_user(user)
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        refresh = self.get_token(self.user)
+
+        data['refresh'] = str(refresh)
+        data['access'] = str(refresh.access_token)
+        # 自行添加的↓
+        data['token'] = data['access']
+        data['username'] = self.user.username
+        data['user_id'] = self.user.id
+
+        return data

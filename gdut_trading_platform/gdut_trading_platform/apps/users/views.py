@@ -1,9 +1,10 @@
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenViewBase
 
 from .models import User
-from .serializers import CreateUserSerializer
+from .serializers import CreateUserSerializer, MyTokenObtainPairSerializer
 
 
 class UserView(CreateAPIView):
@@ -34,3 +35,7 @@ class MobileCountView(APIView):
         }
         return Response(data)
 
+
+class MyTokenObtainPairView(TokenViewBase):
+    """ jwt登录视图 按照TokenObtainPairView重写为自己调用的视图"""
+    serializer_class = MyTokenObtainPairSerializer

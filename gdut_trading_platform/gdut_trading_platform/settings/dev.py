@@ -17,6 +17,7 @@ from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 # print(BASE_DIR)
 # D:\python_environment\python.exercise\DRF_project\gdut-trading-platform\gdut_trading_platform\gdut_trading_platform
@@ -245,3 +246,7 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),  # JWT有效期
 }
 
+# 修改默认的认证后端
+AUTHENTICATION_BACKENDS = [
+ 'users.auth.MyAuthBackend',
+]

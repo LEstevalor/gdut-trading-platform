@@ -41,7 +41,7 @@ var vm = new Vue({
             this.check_pwd();
 
             if (this.error_username == false && this.error_pwd == false) {
-                axios.post(this.host+'/authorizations/', {
+                axios.post(this.host+'/api/token/', {
                         username: this.username,
                         password: this.password
                     }, {
