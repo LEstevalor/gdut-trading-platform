@@ -6,7 +6,7 @@ from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
-
+from celery_tasks.email.tasks import send_verify_email
 
 class CreateUserSerializer(serializers.ModelSerializer):
     """注册序列化器"""
@@ -106,3 +106,33 @@ class MyTokenObtainPairSerializer(TokenObtainSerializer):
         data['user_id'] = self.user.id
 
         return data
+
+
+class UserDetailSerializer(serializers.ModelSerializer):
+    """⽤户详细信息序列化器"""
+    class Meta:
+        model = User
+        # 对应前端需要返回的字段即可
+        fields = ['id', 'username', 'mobile', 'email', 'email_active']
+
+
+class EmailSerializer(serializers.ModelSerializer):
+    """邮箱序列化器"""
+    class Meta:
+        model = User
+        fields = ['id', 'email']
+        extra_kwargs = {
+            'email': {
+                'required': True
+            }
+        }
+
+    def update(self, instance, validated_data):
+        instance.email = validated_data['email']
+        instance.save()
+
+        # 发确认邮件到设置的邮箱（异步发送邮件）
+        verify_url = instance.generate_email_verify_url()
+        send_verify_email.delay(instance.email, verify_url)
+
+        return instance

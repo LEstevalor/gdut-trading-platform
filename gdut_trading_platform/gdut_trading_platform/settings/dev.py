@@ -54,8 +54,7 @@ INSTALLED_APPS = [
 
     'users.apps.UsersConfig',    # 用户模块注册
 
-    'rest_framework_simplejwt',  # jwt
-
+    'rest_framework_simplejwt',  # (simple)jwt
 ]
 
 MIDDLEWARE = [
@@ -222,6 +221,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         # jwt配置
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
     ),
 }
 
@@ -250,3 +251,14 @@ SIMPLE_JWT = {
 AUTHENTICATION_BACKENDS = [
  'users.auth.MyAuthBackend',
 ]
+
+# 发送邮箱配置(注释掉的配置为全局已经有的默认配置)
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_PORT = 25
+EMAIL_HOST = 'smtp.163.com'   # 邮箱服务器
+# 发送邮件的邮箱
+EMAIL_HOST_USER = 'lxd2534891955@163.com'
+# 在邮箱中设置的客户端授权密码
+EMAIL_HOST_PASSWORD = 'MQFAOXAEQJTEALXO'
+# 收件⼈看到的发件⼈
+EMAIL_FROM = 'python<lxd2534891955@163.com>'
