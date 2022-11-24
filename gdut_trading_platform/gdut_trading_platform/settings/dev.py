@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     'rest_framework',       # DRF
     'corsheaders',          # 解决跨域CORS
 
-    'users.apps.UsersConfig',    # 用户模块注册
+    'users.apps.UsersConfig',    # 用户模块
+    'areas.apps.AreasConfig',    # 省市区模块
 
     'rest_framework_simplejwt',  # (simple)jwt
 ]
