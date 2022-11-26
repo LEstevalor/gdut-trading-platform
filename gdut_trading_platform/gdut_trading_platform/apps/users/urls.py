@@ -1,4 +1,6 @@
 from django.conf.urls import url
+from rest_framework import routers
+
 from . import views
 from .views import UserDetailView, UserView, UsernameCountView, MobileCountView, EmailView, EmailVerifyView
 
@@ -17,6 +19,10 @@ urlpatterns = [
 
     url(r'^email/$', EmailView.as_view()),     # 邮箱设置
     url(r'^emails/verification/$', EmailVerifyView.as_view())    # 激活邮箱验证
+
 ]
 
+router = routers.DefaultRouter()
+router.register(r'addresses', views.AddressViewSet, basename="addresses")
+urlpatterns += router.urls
 

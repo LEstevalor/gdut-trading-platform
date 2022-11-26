@@ -5,8 +5,9 @@ from rest_framework_jwt.settings import api_settings
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import User
+from .models import User, Address
 from celery_tasks.email.tasks import send_verify_email
+
 
 class CreateUserSerializer(serializers.ModelSerializer):
     """注册序列化器"""
@@ -23,13 +24,13 @@ class CreateUserSerializer(serializers.ModelSerializer):
             'username': {
                 'min_length': 5,
                 'max_length': 20,
-                'error_messages': {   # 自定义校验错误信息的提示
+                'error_messages': {  # 自定义校验错误信息的提示
                     'min_length': '仅允许5-20个字符的用户名',  # 比如不满足min_length的条件，则显示信息
                     'max_length': '仅允许5-20个字符的用户名',
                 }
             },
-            'password': {     # 另外注意，修改密码的长度，不会影响对数据库存储密码时的加密操作（这里只是通过序列化器限制输入密码的长度）
-                'write_only': True,   # 易漏（只做反序列化）
+            'password': {  # 另外注意，修改密码的长度，不会影响对数据库存储密码时的加密操作（这里只是通过序列化器限制输入密码的长度）
+                'write_only': True,  # 易漏（只做反序列化）
                 'min_length': 8,
                 'max_length': 20,
                 'error_messages': {
@@ -75,8 +76,8 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
         password = validated_data.pop('password')
         user = User(**validated_data)  # 创建User（下面还得存到数据库中）
-        user.set_password(password)    # 密码加密后再赋值给password属性
-        user.save()                    # 存到数据库
+        user.set_password(password)  # 密码加密后再赋值给password属性
+        user.save()  # 存到数据库
 
         jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
         jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -110,6 +111,7 @@ class MyTokenObtainPairSerializer(TokenObtainSerializer):
 
 class UserDetailSerializer(serializers.ModelSerializer):
     """⽤户详细信息序列化器"""
+
     class Meta:
         model = User
         # 对应前端需要返回的字段即可
@@ -118,6 +120,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
 class EmailSerializer(serializers.ModelSerializer):
     """邮箱序列化器"""
+
     class Meta:
         model = User
         fields = ['id', 'email']
@@ -136,3 +139,36 @@ class EmailSerializer(serializers.ModelSerializer):
         send_verify_email.delay(instance.email, verify_url)
 
         return instance
+
+
+class UserAddressSerializer(serializers.ModelSerializer):
+    """⽤户地址序列化器"""
+    # 从models里的Address，直接取出其实拿到的是province的id，
+    # 我们自定义的目的是为了分别拿到字符串（只用于read）和id（required=True，也就是默认表单字段不能为空）
+    province = serializers.StringRelatedField(read_only=True)
+    city = serializers.StringRelatedField(read_only=True)
+    district = serializers.StringRelatedField(read_only=True)
+    province_id = serializers.IntegerField(label='省ID', required=True)
+    city_id = serializers.IntegerField(label='市ID', required=True)
+    district_id = serializers.IntegerField(label='区ID', required=True)
+
+    class Meta:
+        model = Address
+        exclude = ('user', 'is_deleted', 'create_time', 'update_time')   # 排除的字段
+
+    def validate_mobile(self, value):
+        """验证⼿机号"""
+        if not re.match(r'^1[3-9]\d{9}$', value):
+            raise serializers.ValidationError('⼿机号格式错误')
+        return value
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        validated_data['user'] = user
+        return Address.objects.create(**validated_data)
+
+
+class AddressTitleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = ['id', 'title']

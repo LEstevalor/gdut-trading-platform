@@ -1,0 +1,2 @@
+# 常量文件
+USER_ADDRESS_COUNTS_LIMIT = 5
