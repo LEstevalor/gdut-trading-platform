@@ -51,9 +51,14 @@ INSTALLED_APPS = [
 
     'rest_framework',       # DRF
     'corsheaders',          # 解决跨域CORS
+    'ckeditor',             # 富文本编辑器
+    'ckeditor_uploader',    # 富文本编辑器上传图片模块
+    'django_crontab',       # 定时任务
 
-    'users.apps.UsersConfig',    # 用户模块
-    'areas.apps.AreasConfig',    # 省市区模块
+    'users.apps.UsersConfig',      # 用户模块
+    'areas.apps.AreasConfig',      # 省市区模块
+    'goods.apps.GoodsConfig',      # 商品模块
+    'contents.apps.ContentsConfig',  # 内容模块
 
     'rest_framework_simplejwt',  # (simple)jwt
 ]
@@ -71,10 +76,11 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'gdut_trading_platform.urls'
 
+# 模板文件配置项
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],   # 指定模板文件加载路径
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -126,9 +132,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-hans'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
@@ -269,3 +275,22 @@ REST_FRAMEWORK_EXTENSIONS = {
  # 缓存时间
  'DEFAULT_CACHE_RESPONSE_TIMEOUT': 60 * 60,
 }
+
+# django⽂件存储
+DEFAULT_FILE_STORAGE = 'gdut_trading_platform.utils.fastdfs.fdfs_storage.FastDFSStorage'
+# FastDFS
+FDFS_BASE_URL = 'http://192.168.239.100:8888/'
+FDFS_CLIENT_CONF = os.path.join(BASE_DIR, 'utils/fastdfs/client.conf')
+
+# 富文本编辑器ckeditor配置
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',  # 工具条功能
+        'height': 300,   # 编辑器高度
+        # 'width': 300,  # 编辑器宽
+    },
+}
+CKEDITOR_UPLOAD_PATH = ''  # 上传图片保存路径，使用了FastDFS，所以此处设为''
+
+# 生成的静态html文件保存目录（dirname表示上一級）
+GENERATED_STATIC_HTML_FILES_DIR = os.path.join(os.path.dirname(os.path.dirname(BASE_DIR)), 'front_end_pc')

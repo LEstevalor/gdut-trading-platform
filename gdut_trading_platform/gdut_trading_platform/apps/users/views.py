@@ -97,7 +97,7 @@ class AddressViewSet(UpdateModelMixin, GenericViewSet):
         # 获取请求对象
         user = request.user
         count = Address.objects.filter(user=user).count()
-        if count > USER_ADDRESS_COUNTS_LIMIT:   # 如果不是需要做一个判断，那么继承一个CreateModelMixin即可
+        if count > USER_ADDRESS_COUNTS_LIMIT:
             return Response({'message': '收货地址数目上限'}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer(data=request.data)
@@ -109,19 +109,17 @@ class AddressViewSet(UpdateModelMixin, GenericViewSet):
     def destroy(self, request, *args, **kwargs):
         """处理(删)除"""
         address = self.get_object()
-        address.is_deleted = True     # 逻辑删除（不需要物理删除，所以未使用DestroyModelMixin），数据库中未删除（get_queryset过滤条件）
-        address.save()                # 其实，这里我觉得应该用物理删除（数据库删除），直接继承DestroyModelMixin即可（就不需要过滤条件）
+        address.is_deleted = True     # 逻辑删除
+        address.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-    # 改 简单的update，继承一个UpdateModelMixin就能完成
 
     # GET /addresses/
     def list(self, request, *args, **kwargs):
         """（查）用户地址列表数据"""
-        queryset = self.get_queryset()   # 避免一次查询出所有用户的数据集（Address.Object.All()），因此把get_queryset提取成方法，放在前面
+        queryset = self.get_queryset()   # 避免一次查询出所有用户的数据集（Address.Object.All()），get_queryset提取成方法
         serializer = self.get_serializer(queryset, many=True)
         user = self.request.user
-        return Response({                   # 需要特殊的响应数据，这里我们并不去直接继承ListModelMixin这种
+        return Response({
             'user_id': user.id,
             'default_address_id': user.default_address_id,
             'limit': constants.USER_ADDRESS_COUNTS_LIMIT,
@@ -138,7 +136,6 @@ class AddressViewSet(UpdateModelMixin, GenericViewSet):
         return Response({'message': 'OK'}, status=status.HTTP_200_OK)
 
     # put /addresses/pk/title/
-    # 需要请求体参数 title
     @action(methods=['put'], detail=True)
     def title(self, request, pk=None):
         """修改标题"""

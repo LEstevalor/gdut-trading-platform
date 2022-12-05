@@ -23,4 +23,6 @@ urlpatterns = [
     url(r'^', include('verifications.urls')),   # 发短信块模块
     url(r'^', include('users.urls')),           # 用户模块
     url(r'^', include('areas.urls')),           # 省市区处理模块
+
+    url(r'^ckeditor/', include('ckeditor_uploader.urls')),
 ]
