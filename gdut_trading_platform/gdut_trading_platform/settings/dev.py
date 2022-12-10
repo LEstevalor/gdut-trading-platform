@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'areas.apps.AreasConfig',      # 省市区模块
     'goods.apps.GoodsConfig',      # 商品模块
     'contents.apps.ContentsConfig',  # 内容模块
+    'carts.apps.CartsConfig',      # 购物车模块
 
     'rest_framework_simplejwt',  # (simple)jwt
 ]
@@ -153,6 +154,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # 配置redis数据库作为缓存后端
 CACHES = {
+    # 默认缓存配置
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/0",
@@ -167,18 +169,35 @@ CACHES = {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
-    "verify_codes": {   # 缓存验证码
+    # 缓存验证码
+    "verify_codes": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/2",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
+    # 缓存用户浏览历史记录
+    "history": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/3",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    # 购物车
+    "cart": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/4",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
 }
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "session"
 
-#日志
+# 日志
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,  # 是否禁用已经存在的日志器
@@ -231,6 +250,9 @@ REST_FRAMEWORK = {
         # 'rest_framework.authentication.SessionAuthentication',
         # 'rest_framework.authentication.BasicAuthentication',
     ),
+
+    # 分页
+    'DEFAULT_PAGINATION_CLASS': 'gdut_trading_platform.utils.pagination.StandardResultsSetPagination',
 }
 
 # 修改Django认证系统的用户模型类
@@ -247,7 +269,7 @@ CORS_ORIGIN_WHITELIST = (
     'http://api.gdut-trading-platform.site:8000',
 )
 # 允许携带cookie
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_CREDENTIALS = True  # 指明在跨域访问中，后端是否支持对cookie的操作
 
 # Simple JWT
 SIMPLE_JWT = {

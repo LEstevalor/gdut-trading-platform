@@ -2,8 +2,8 @@ from django.conf.urls import url
 from rest_framework import routers
 
 from . import views
-from .views import UserDetailView, UserView, UsernameCountView, MobileCountView, EmailView, EmailVerifyView
-
+from .views import UserDetailView, UserView, UsernameCountView, MobileCountView, EmailView, EmailVerifyView, \
+    UserBrowsingHistoryView
 
 urlpatterns = [
     url(r'^users/$', UserView.as_view()),   # 注册用户
@@ -18,7 +18,9 @@ urlpatterns = [
     url(r'^user/$', UserDetailView.as_view()),     # 用户详情（用户中心）
 
     url(r'^email/$', EmailView.as_view()),     # 邮箱设置
-    url(r'^emails/verification/$', EmailVerifyView.as_view())    # 激活邮箱验证
+    url(r'^emails/verification/$', EmailVerifyView.as_view()),    # 激活邮箱验证
+
+    url(r'^browse_histories/$', UserBrowsingHistoryView.as_view()),   # 用户浏览历史
 
 ]
 

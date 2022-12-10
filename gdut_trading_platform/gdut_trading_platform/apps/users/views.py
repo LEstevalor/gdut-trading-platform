@@ -1,3 +1,4 @@
+from django_redis import get_redis_connection
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView
@@ -12,7 +13,10 @@ from . import constants
 from .constants import USER_ADDRESS_COUNTS_LIMIT
 from .models import User, Address
 from .serializers import CreateUserSerializer, MyTokenObtainPairSerializer, UserDetailSerializer, EmailSerializer, \
-    UserAddressSerializer, AddressTitleSerializer
+    UserAddressSerializer, AddressTitleSerializer, AddUserBrowsingHistorySerializer
+from goods.models import SKU
+from goods.serializers import SKUSerializer
+from carts.utils import merge_cart_cookie_to_redis
 
 
 class UserView(CreateAPIView):
@@ -47,6 +51,18 @@ class MobileCountView(APIView):
 class MyTokenObtainPairView(TokenViewBase):
     """ jwt登录视图 按照TokenObtainPairView重写为自己调用的视图"""
     serializer_class = MyTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        # 调用父类的方法，获取drf jwt扩展默认的认证用户处理结果
+        response = super().post(request, *args, **kwargs)
+        # 用户登录成功从会走下面的逻辑
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            # 获取用户信息
+            user_id = serializer.validated_data.get('user_id')
+            response = merge_cart_cookie_to_redis(request, user_id, response)
+
+        return response
 
 
 class UserDetailView(RetrieveAPIView):
@@ -144,3 +160,24 @@ class AddressViewSet(UpdateModelMixin, GenericViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+class UserBrowsingHistoryView(CreateAPIView):
+    """用户浏览历史记录"""
+    serializer_class = AddUserBrowsingHistorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """用户获取浏览记录"""
+        user_id = request.user.id
+
+        redis_conn = get_redis_connection("history")
+        history = redis_conn.lrange("history_%s" % user_id, 0, constants.USER_BROWSING_HISTORY_COUNTS_LIMIT - 1)
+        skus = []
+        # 为了保持查询出的顺序与用户的浏览历史保存顺序一致
+        for sku_id in history:
+            sku = SKU.objects.get(id=sku_id)
+            skus.append(sku)
+
+        s = SKUSerializer(skus, many=True)
+        return Response(s.data)

@@ -23,6 +23,8 @@ urlpatterns = [
     url(r'^', include('verifications.urls')),   # 发短信块模块
     url(r'^', include('users.urls')),           # 用户模块
     url(r'^', include('areas.urls')),           # 省市区处理模块
+    url(r'^', include('goods.urls')),           # 商品模块
+    url(r'^', include('carts.urls')),           # 购物车模块
 
-    url(r'^ckeditor/', include('ckeditor_uploader.urls')),
+    url(r'^ckeditor/', include('ckeditor_uploader.urls')),   # 富文本编辑器模块
 ]
