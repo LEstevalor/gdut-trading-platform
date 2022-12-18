@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^', include('areas.urls')),           # 省市区处理模块
     url(r'^', include('goods.urls')),           # 商品模块
     url(r'^', include('carts.urls')),           # 购物车模块
+    url(r'^', include('orders.urls')),           # 订单模块
 
     url(r'^ckeditor/', include('ckeditor_uploader.urls')),   # 富文本编辑器模块
 ]

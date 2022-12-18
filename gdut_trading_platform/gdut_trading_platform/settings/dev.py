@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'goods.apps.GoodsConfig',      # 商品模块
     'contents.apps.ContentsConfig',  # 内容模块
     'carts.apps.CartsConfig',      # 购物车模块
+    'orders.apps.OrdersConfig',      # 订单模块
 
     'rest_framework_simplejwt',  # (simple)jwt
 ]
