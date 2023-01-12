@@ -1,0 +1,4 @@
+# 用于修改标签为后端主语言
+*.js linguist-language=Python
+*.css linguist-language=Python
+*.html linguist-language=Python
