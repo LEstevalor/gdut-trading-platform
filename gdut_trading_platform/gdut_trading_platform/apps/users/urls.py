@@ -1,9 +1,8 @@
 from django.conf.urls import url
 from rest_framework import routers
 
-from . import views
 from .views import UserDetailView, UserView, UsernameCountView, MobileCountView, EmailView, EmailVerifyView, \
-    UserBrowsingHistoryView
+    UserBrowsingHistoryView, AddressViewSet, MyTokenObtainPairView
 
 urlpatterns = [
     url(r'^users/$', UserView.as_view()),   # 注册用户
@@ -13,7 +12,7 @@ urlpatterns = [
     # url(r'^api/token/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),     # JWT登录
     # url(r'^api/token/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
     # url(r'^api/token/verify/$', TokenVerifyView.as_view(), name='token_verify'),
-    url(r'^api/token/$', views.MyTokenObtainPairView.as_view(), name='token_obtain_pair'),     # JWT登录
+    url(r'^api/token/$', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),     # JWT登录
 
     url(r'^user/$', UserDetailView.as_view()),     # 用户详情（用户中心）
 
@@ -25,6 +24,5 @@ urlpatterns = [
 ]
 
 router = routers.DefaultRouter()
-router.register(r'addresses', views.AddressViewSet, basename="addresses")
+router.register(r'addresses', AddressViewSet, basename="addresses")
 urlpatterns += router.urls
-

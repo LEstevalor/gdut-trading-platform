@@ -36,7 +36,7 @@ SECRET_KEY = 'django-insecure-(*r*nj-=7s2w3_%+e2@-b%ah36z5h*i&*fheuk!uvb6ra0-8c=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 # 允许哪些域名访问Django
-ALLOWED_HOSTS = ['127.0.0.1', 'Localhost', 'www.gdut-trading-platform.site', 'api.gdut-trading-platform.site']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'www.gdut-trading-platform.site', 'api.gdut-trading-platform.site']
 
 
 # Application definition
