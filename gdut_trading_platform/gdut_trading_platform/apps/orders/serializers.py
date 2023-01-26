@@ -41,7 +41,7 @@ class CommitOrderSerializer(serializers.ModelSerializer):
         # 获取当前保存订单需要的信息
         user = self.context['request'].user  # GenericAPIView里封装的context里的request字段
         # 因order_id需要，另外用user.id为保证订单号唯一（用户不可能一秒两单），且防止出现并发问题
-        order_id = datetime.now().strftime('%Y%m%d%h%M%S') + '%09d' % user.id  # 取服务器时间，年月日时分秒
+        order_id = datetime.now().strftime('%Y%m%d%H%M%S') + '%09d' % user.id  # 取服务器时间，年月日时分秒
         address = validated_data.get('address')  # 前端传过来经反序列化的数据validated_data
         pay_method = validated_data.get('pay_method')
         # 订单状态，如果选择支付宝，那么以未支付状态unpaid保存，否则就是货到付款，以未寄出的状态unsend保存，选择都在数据库字段里
@@ -73,45 +73,59 @@ class CommitOrderSerializer(serializers.ModelSerializer):
                 # SKU.object.filter(id__in=selected_ids)  # queryset查询集的两大特性：惰性和缓存
                 # 这里不建议这么写，因为查询集的缓存，多个用户同时抢一个商品会出现缓存的问题，导致数据错乱，我们应该保证数据都是最新的，用一取一
                 for sku_id in selected_ids:
-                    # 获取SKU对象
-                    sku = SKU.objects.get(id=sku_id)
-                    # 获取当前商品购买数量，注意读出来的是字符，而后面的比较是数字
-                    buy_count = int(cart_dict_redis[sku_id])
-                    # 该商品原本的库存和销量取出
-                    cur_stock = sku.stock
-                    cur_sales = sku.sales
-                    # 判断库存，若有，则减少库存，增加销量
-                    if buy_count > cur_stock:
-                        # 有些公司直接在购物车就做此判断，跳出判断，也是一个方法（要么购物车判断，要么提交订单判断），
-                        # 不过一般第二种，因为多个用户同时购物车就容易冲突，还是需要加判断，不过可以采取显示库存
-                        raise serializers.ValidationError('库存不足')  # 跑异常，库存不足
+                    while True:
+                        # 让用户抢不到能无限抢（抢不到continue进行抢），除非库存不足raise到except 或 成功抢下到break
+                        # 这里也可以限制次数，多少次清单机会也是一种策略
 
-                    new_stock = cur_stock - buy_count
-                    new_sales = cur_sales + buy_count
-                    sku.stock = new_stock
-                    sku.sales = new_sales
-                    sku.save()  # 保存SKU
+                        # 获取SKU对象
+                        sku = SKU.objects.get(id=sku_id)
+                        # 获取当前商品购买数量，注意读出来的是字符，而后面的比较是数字
+                        buy_count = int(cart_dict_redis[sku_id])
+                        # 该商品原本的库存和销量取出
+                        cur_stock = sku.stock
+                        cur_sales = sku.sales
+                        # 判断库存，若有，则减少库存，增加销量
+                        if buy_count > cur_stock:
+                            # 有些公司直接在购物车就做此判断，跳出判断，也是一个方法（要么购物车判断，要么提交订单判断），
+                            # 不过一般第二种，因为多个用户同时购物车就容易冲突，还是需要加判断，不过可以采取显示库存
+                            raise serializers.ValidationError('库存不足')  # 跑异常，库存不足
 
-                    # 修改SKU销量
-                    spu = sku.goods
-                    spu.sales = spu.sales + new_sales
-                    spu.save()
+                        new_stock = cur_stock - buy_count
+                        new_sales = cur_sales + buy_count
 
-                    # 保存订单商品信息 OrderGoods (多)，有默认值的不必要情况就不需写上
-                    OrderGoods.objects.create(
-                        order=orderInfo,  # 数据库字段定义的是外键，直接写模型
-                        sku=sku,
-                        count=buy_count,
-                        price=sku.price,
-                    )
+                        # sku.stock = new_stock
+                        # sku.sales = new_sales
+                        # 施加乐观锁的化，就不能直接修改了，需要判断一下修改  filter判断，update修改
+                        changeLine = SKU.objects.filter(id=sku_id, stock=cur_stock).update(stock=new_stock, sales=new_sales)
+                        if changeLine == 0:  # ret记录变化行的一样就是用来判断是否原行被修改的
+                            continue
+                            # 如果这里直接raise，那么万一抢不到，都得下单失败（一个抢不到全部抢不到就很糟糕），continue直接少去这个抢不到商品是比较合理的
+                            # 直接raise就跳到except里了
 
-                    # 累加计算总数目和总价
-                    orderInfo.total_count = orderInfo.total_count + buy_count
-                    orderInfo.total_amount = orderInfo.total_amount + buy_count * sku.price
+                        sku.save()  # 保存SKU
 
-                # 最后加入邮费和保存订单信息
-                orderInfo.total_amount = orderInfo.total_amount + orderInfo.freight
-                orderInfo.save()
+                        # 修改SKU销量
+                        spu = sku.goods
+                        spu.sales = spu.sales + new_sales
+                        spu.save()
+
+                        # 保存订单商品信息 OrderGoods (多)，有默认值的不必要情况就不需写上
+                        OrderGoods.objects.create(
+                            order=orderInfo,  # 数据库字段定义的是外键，直接写模型
+                            sku=sku,
+                            count=buy_count,
+                            price=sku.price,
+                        )
+
+                        # 累加计算总数目和总价
+                        orderInfo.total_count = orderInfo.total_count + buy_count
+                        orderInfo.total_amount = orderInfo.total_amount + buy_count * sku.price
+
+                        break  # 跳出死循环
+
+                    # 最后加入邮费和保存订单信息
+                    orderInfo.total_amount = orderInfo.total_amount + orderInfo.freight
+                    orderInfo.save()
 
             except Exception:
                 transaction.savepoint_rollback(save_point)   # 回滚到保存点

@@ -13,12 +13,14 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import xadmin
 from django.conf.urls import url
 from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
+    url(r'xadmin/', xadmin.site.urls),
 
     url(r'^', include('verifications.urls')),   # 发短信块模块
     url(r'^', include('users.urls')),           # 用户模块
@@ -26,6 +28,7 @@ urlpatterns = [
     url(r'^', include('goods.urls')),           # 商品模块
     url(r'^', include('carts.urls')),           # 购物车模块
     url(r'^', include('orders.urls')),           # 订单模块
+    url(r'^', include('payment.urls')),          # 支付模块
 
     url(r'^ckeditor/', include('ckeditor_uploader.urls')),   # 富文本编辑器模块
 ]

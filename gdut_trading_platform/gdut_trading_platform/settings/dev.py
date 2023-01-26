@@ -61,8 +61,14 @@ INSTALLED_APPS = [
     'contents.apps.ContentsConfig',  # 内容模块
     'carts.apps.CartsConfig',      # 购物车模块
     'orders.apps.OrdersConfig',      # 订单模块
+    'payment.apps.PaymentConfig',    # 支付模块
 
     'rest_framework_simplejwt',  # (simple)jwt
+    'haystack',  # Haystack对接Elasticsearch
+
+    'xadmin',  # Xadmin
+    'crispy_forms',
+    'reversion',
 ]
 
 MIDDLEWARE = [
@@ -317,3 +323,23 @@ CKEDITOR_UPLOAD_PATH = ''  # 上传图片保存路径，使用了FastDFS，所�
 
 # 生成的静态html文件保存目录（dirname表示上一級）
 GENERATED_STATIC_HTML_FILES_DIR = os.path.join(os.path.dirname(os.path.dirname(BASE_DIR)), 'front_end_pc')
+
+# 支付宝信息
+ALIPAY_APPID = "2021000122605799"  # 沙箱给的默认APP id
+ALIPAY_DEBUG = True  # 是否使用沙箱环境
+ALIPAY_URL = "https://openapi.alipaydev.com/gateway.do"  # 支付宝网关地址
+
+# Haystack
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://192.168.239.100:9200/',  # 此处为elasticsearch运行的服务器ip地址，端口号固定为9200
+        'INDEX_NAME': 'gdut',  # 指定elasticsearch建立的索引库的名称
+    },
+}
+
+# 当添加、修改、删除数据时，自动生成索引
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+
+# 配置读写分离
+# DATABASE_ROUTERS = ['gdut_trading_platform.utils.db_router.MasterSlaveDBRouter']
